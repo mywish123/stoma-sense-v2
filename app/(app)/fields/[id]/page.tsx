@@ -1,6 +1,6 @@
 import { getEnrichedField } from '@/lib/data/dataService';
 import { notFound } from 'next/navigation';
-import { IndexCell, AdvisoryCard, ProbBar, HealthScore, SeverityBadge, PriorityBadge, ConfidencePill } from '@/components/ui';
+import { IndexCell, AdvisoryCard, ProbBar, HealthScore, SeverityBadge, PriorityBadge, ConfidencePill, PageHeader } from '@/components/ui';
 import FieldCharts from './FieldCharts';
 import Link from 'next/link';
 
@@ -10,64 +10,66 @@ export default function FieldDetailPage({ params }: { params: { id: string } }) 
 
   const dsf = Math.floor((Date.now() - new Date(f.last_fertilizer_date).getTime()) / 86400000);
   const rfPct = Math.round(f.rainfall_adequacy * 100);
-
   const tchColor = f.tch_prediction.yield_gap >= 0 ? '#4ade80' : '#f87171';
 
   return (
-    <div className="animate-fade-up max-w-screen-xl">
+    <div style={{ maxWidth:1300 }}>
       {/* Breadcrumb */}
-      <div className="mb-6 flex items-center gap-2 text-xs" style={{ color: '#3d5a6a' }}>
-        <Link href="/fields" className="hover:text-green-400">Fields</Link>
+      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16, fontSize:12, color:'#384e5c' }}>
+        <Link href="/fields" style={{ color:'#6b8fa0', textDecoration:'none' }}>Fields</Link>
         <span>/</span>
-        <span style={{ color: '#4ade80' }}>{f.field_id}</span>
+        <span style={{ color:'#4ade80', fontFamily:'monospace', fontWeight:700 }}>{f.field_id}</span>
         <span>/</span>
-        <span style={{ color: '#5a7a8a' }}>{f.farm_name}</span>
+        <span style={{ color:'#6b8fa0' }}>{f.farm_name}</span>
       </div>
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-black" style={{ color: '#e2eaf0', letterSpacing: '-0.02em' }}>{f.farm_name}</h1>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:20, marginBottom:24 }}>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6, flexWrap:'wrap' }}>
+            <h1 style={{ fontSize:22, fontWeight:900, color:'#dce8f0', letterSpacing:'-0.02em', lineHeight:1.2 }}>{f.farm_name}</h1>
             <PriorityBadge priority={f.advisory_priority} />
             {f.advisories.some(a => a.is_recurring) && (
-              <span className="text-xs px-2 py-0.5 rounded font-bold"
-                style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' }}>
+              <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:4, background:'rgba(248,113,113,0.10)', color:'#f87171', border:'1px solid rgba(248,113,113,0.2)' }}>
                 ↻ Recurring Stress
               </span>
             )}
           </div>
-          <p className="text-sm mb-1" style={{ color: '#5a7a8a' }}>
+          <p style={{ fontSize:12, color:'#6b8fa0', marginBottom:3 }}>
             {f.field_id} · {f.village}, {f.block}, {f.district} · {f.area_ha} ha · {f.cultivar}
           </p>
-          <p className="text-xs" style={{ color: '#3d5a6a' }}>
-            Planted: {f.planting_date} · Expected harvest: {f.expected_harvest_date} · Age: {f.crop_age_days} days · Stage: {f.growth_stage}
+          <p style={{ fontSize:11, color:'#384e5c' }}>
+            Planted {f.planting_date} · Expected harvest {f.expected_harvest_date} · Age: {f.crop_age_days}d · {f.growth_stage}
           </p>
         </div>
-        <div className="flex items-center gap-6">
-          <div className="text-right">
-            <p className="text-xs font-bold tracking-widest uppercase mb-1" style={{ color: '#3d5a6a' }}>Health Score</p>
-            <HealthScore score={f.health_score} size={60} />
+        <div style={{ display:'flex', alignItems:'center', gap:24, flexShrink:0 }}>
+          <div style={{ textAlign:'right' }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#384e5c', marginBottom:6 }}>Health Score</div>
+            <HealthScore score={f.health_score} size={56} />
           </div>
-          <div className="text-right">
-            <p className="text-xs font-bold tracking-widest uppercase mb-1" style={{ color: '#3d5a6a' }}>Predicted TCH</p>
-            <p className="text-3xl font-black mono" style={{ color: tchColor }}>{f.tch_prediction.predicted_tch}</p>
-            <p className="text-xs" style={{ color: tchColor }}>
+          <div style={{ textAlign:'right' }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#384e5c', marginBottom:4 }}>Predicted TCH</div>
+            <div style={{ fontSize:30, fontWeight:900, color:tchColor, fontVariantNumeric:'tabular-nums', letterSpacing:'-0.02em', lineHeight:1 }}>
+              {f.tch_prediction.predicted_tch}
+            </div>
+            <div style={{ fontSize:11, color:tchColor, marginTop:3 }}>
               {f.tch_prediction.yield_gap >= 0 ? '+' : ''}{f.tch_prediction.yield_gap} vs baseline
-            </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div style={{ height:1, background:'linear-gradient(to right, #1c2d38, transparent)', marginBottom:24 }} />
+
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 320px', gap:20 }}>
         {/* Main column */}
-        <div className="col-span-2 space-y-6">
-          {/* Index values */}
-          <div className="rounded-xl p-5" style={{ background: '#0c1318', border: '1px solid #1e2d38' }}>
-            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#3d5a6a', letterSpacing: '0.12em' }}>
-              Current Index Values vs Stage Expectation ({f.growth_stage})
-            </p>
-            <div className="grid grid-cols-3 gap-3">
+        <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
+          {/* Index grid */}
+          <div style={{ background:'#0d1518', border:'1px solid #1c2d38', borderRadius:14, padding:'20px 22px' }}>
+            <div style={{ fontSize:10, fontWeight:800, letterSpacing:'0.14em', textTransform:'uppercase', color:'#384e5c', marginBottom:14 }}>
+              Current Indices vs Stage Expectation — {f.growth_stage}
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:10, marginBottom:10 }}>
               <IndexCell label="NDRE" value={f.indices.NDRE} expected={f.indices.expected_NDRE} desc="Canopy chlorophyll / biomass" />
               <IndexCell label="CIRE" value={f.indices.CIRE} expected={f.indices.expected_CIRE} desc="Chlorophyll / nutrient stress" />
               <IndexCell label="NDWI" value={f.indices.NDWI} expected={f.indices.expected_NDWI} desc="Crop water / moisture" />
@@ -75,163 +77,129 @@ export default function FieldDetailPage({ params }: { params: { id: string } }) 
               <IndexCell label="GNDVI" value={f.indices.GNDVI} desc="Chlorophyll / N vigor" />
               <IndexCell label="SAVI" value={f.indices.SAVI} desc="Soil-adjusted vegetation" />
             </div>
-            <div className="grid grid-cols-3 gap-3 mt-3">
-              <IndexCell label="MSAVI" value={f.indices.MSAVI} desc="Modified soil-adjusted" />
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:10 }}>
+              <IndexCell label="MSAVI"   value={f.indices.MSAVI}             desc="Modified soil-adjusted" />
               <IndexCell label="Salinity Index" value={f.indices.salinity_index} desc="Salinity risk proxy" />
-              <IndexCell label="Canopy Temp Proxy" value={f.indices.canopy_temp_proxy} desc="°C above ambient (CWSI)" />
+              <IndexCell label="Canopy Temp Δ"  value={f.indices.canopy_temp_proxy} desc="°C above ambient (CWSI)" />
             </div>
           </div>
 
           {/* Temporal charts */}
-          <div className="rounded-xl p-5" style={{ background: '#0c1318', border: '1px solid #1e2d38' }}>
-            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#3d5a6a', letterSpacing: '0.12em' }}>
+          <div style={{ background:'#0d1518', border:'1px solid #1c2d38', borderRadius:14, padding:'20px 22px' }}>
+            <div style={{ fontSize:10, fontWeight:800, letterSpacing:'0.14em', textTransform:'uppercase', color:'#384e5c', marginBottom:14 }}>
               Seasonal Vegetation Trajectory
-            </p>
+            </div>
             <FieldCharts field={f} />
           </div>
 
           {/* Advisories */}
           <div>
-            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#3d5a6a', letterSpacing: '0.12em' }}>
+            <div style={{ fontSize:10, fontWeight:800, letterSpacing:'0.14em', textTransform:'uppercase', color:'#384e5c', marginBottom:14 }}>
               Generated Advisories ({f.advisories.length})
-            </p>
+            </div>
             {f.advisories.length === 0 ? (
-              <div className="rounded-xl p-10 text-center" style={{ background: '#0c1318', border: '1px solid #1e2d38' }}>
-                <p className="text-2xl mb-2">✅</p>
-                <p className="font-bold" style={{ color: '#4ade80' }}>No active advisories</p>
-                <p className="text-sm mt-1" style={{ color: '#5a7a8a' }}>All indices within acceptable stage range.</p>
+              <div style={{ background:'#0d1518', border:'1px solid #1c2d38', borderRadius:14, padding:'40px', textAlign:'center' }}>
+                <div style={{ fontSize:28, marginBottom:8 }}>✅</div>
+                <div style={{ fontWeight:700, color:'#4ade80', marginBottom:4 }}>No active advisories</div>
+                <div style={{ fontSize:12, color:'#6b8fa0' }}>All indices within acceptable stage range.</div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
                 {f.advisories.map(a => <AdvisoryCard key={a.id} adv={a} />)}
               </div>
             )}
           </div>
         </div>
 
-        {/* Right column */}
-        <div className="space-y-5">
-          {/* Stress probabilities */}
-          <div className="rounded-xl p-5" style={{ background: '#0c1318', border: '1px solid #1e2d38' }}>
-            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#3d5a6a', letterSpacing: '0.12em' }}>Stress Probabilities</p>
-            <div className="space-y-4">
-              <ProbBar value={f.water_stress_probability} label="💧 Water Stress" />
+        {/* Right sidebar */}
+        <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+          {/* Stress probs */}
+          <div style={{ background:'#0d1518', border:'1px solid #1c2d38', borderRadius:12, padding:'18px 20px' }}>
+            <div style={{ fontSize:10, fontWeight:800, letterSpacing:'0.14em', textTransform:'uppercase', color:'#384e5c', marginBottom:14 }}>
+              Stress Probabilities
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+              <ProbBar value={f.water_stress_probability}    label="💧 Water Stress" />
               <ProbBar value={f.nutrient_stress_probability} label="🌿 Nutrient Stress" />
-              <ProbBar value={f.salinity_risk_probability} label="⚗️ Salinity Risk" />
+              <ProbBar value={f.salinity_risk_probability}   label="⚗️ Salinity Risk" />
             </div>
-            <div className="mt-4 pt-4 space-y-2" style={{ borderTop: '1px solid #1e2d38' }}>
-              <div className="flex justify-between text-xs">
-                <span style={{ color: '#5a7a8a' }}>Confidence Level</span>
-                <ConfidencePill value={f.confidence_level} />
+            <div style={{ height:1, background:'#1c2d38', margin:'14px 0' }} />
+            {[
+              ['Confidence Level', <ConfidencePill key="c" value={f.confidence_level} />],
+              ['Growth Score', <span key="g" style={{ fontSize:11, fontWeight:700, color:'#dce8f0', fontFamily:'monospace' }}>{f.growth_performance_score}/100</span>],
+            ].map(([k, v]) => (
+              <div key={String(k)} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                <span style={{ fontSize:11, color:'#6b8fa0' }}>{k}</span>
+                {v}
               </div>
-              <div className="flex justify-between text-xs">
-                <span style={{ color: '#5a7a8a' }}>Growth Score</span>
-                <span className="mono font-bold" style={{ color: '#e2eaf0' }}>{f.growth_performance_score}/100</span>
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* TCH Prediction */}
-          <div className="rounded-xl p-5" style={{ background: '#0c1318', border: '1px solid #1e2d38' }}>
-            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#3d5a6a', letterSpacing: '0.12em' }}>Yield Intelligence (ML)</p>
-            <div className="text-center mb-4">
-              <p className="text-3xl font-black mono mb-1" style={{ color: tchColor }}>{f.tch_prediction.predicted_tch} TCH</p>
-              <p className="text-xs" style={{ color: '#5a7a8a' }}>
+          {/* TCH */}
+          <div style={{ background:'#0d1518', border:'1px solid #1c2d38', borderRadius:12, padding:'18px 20px' }}>
+            <div style={{ fontSize:10, fontWeight:800, letterSpacing:'0.14em', textTransform:'uppercase', color:'#384e5c', marginBottom:14 }}>
+              Yield Intelligence (ML)
+            </div>
+            <div style={{ textAlign:'center', marginBottom:14 }}>
+              <div style={{ fontSize:32, fontWeight:900, color:tchColor, fontVariantNumeric:'tabular-nums', letterSpacing:'-0.02em' }}>
+                {f.tch_prediction.predicted_tch} <span style={{ fontSize:14, fontWeight:600 }}>TCH</span>
+              </div>
+              <div style={{ fontSize:11, color:'#6b8fa0', marginTop:4 }}>
                 [{f.tch_prediction.confidence_interval[0]} – {f.tch_prediction.confidence_interval[1]}] 90% CI
-              </p>
-              <div className="mt-2">
-                <span className="text-xs px-3 py-1 rounded-full font-bold"
-                  style={{ background: 'rgba(74,222,128,0.1)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.2)' }}>
+              </div>
+              <div style={{ marginTop:8 }}>
+                <span style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:14, background:'rgba(74,222,128,0.08)', color:'#4ade80', border:'1px solid rgba(74,222,128,0.18)' }}>
                   {f.tch_prediction.productivity_bucket}
                 </span>
               </div>
             </div>
-            <div>
-              <p className="text-xs font-bold tracking-wider uppercase mb-2" style={{ color: '#3d5a6a' }}>Top SHAP Features</p>
-              {f.tch_prediction.top_features.map((feat, i) => (
-                <div key={i} className="flex items-center gap-2 mb-2">
-                  <div className="flex-1">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span style={{ color: '#5a7a8a' }}>{feat.feature}</span>
-                      <span style={{ color: feat.direction === 'positive' ? '#4ade80' : '#f87171' }}>
-                        {feat.direction === 'positive' ? '+' : '-'}{feat.impact.toFixed(1)}
-                      </span>
-                    </div>
-                    <div className="h-1 rounded-full" style={{ background: '#1e2d38' }}>
-                      <div className="h-full rounded-full" style={{
-                        width: `${Math.min((feat.impact / 25) * 100, 100)}%`,
-                        background: feat.direction === 'positive' ? '#4ade80' : '#f87171',
-                      }} />
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div style={{ fontSize:9, fontWeight:800, letterSpacing:'0.14em', textTransform:'uppercase', color:'#384e5c', marginBottom:10 }}>
+              Top SHAP Features
             </div>
-            <p className="text-xs leading-relaxed mt-3" style={{ color: '#5a7a8a' }}>{f.tch_prediction.explanation}</p>
+            {f.tch_prediction.top_features.map((feat, i) => (
+              <div key={i} style={{ marginBottom:10 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5, gap:8 }}>
+                  <span style={{ fontSize:11, color:'#6b8fa0', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{feat.feature}</span>
+                  <span style={{ fontSize:11, fontWeight:700, color:feat.direction === 'positive' ? '#4ade80' : '#f87171', flexShrink:0 }}>
+                    {feat.direction === 'positive' ? '+' : '-'}{feat.impact.toFixed(1)}
+                  </span>
+                </div>
+                <div style={{ height:3, borderRadius:3, background:'#1c2d38' }}>
+                  <div style={{ height:'100%', borderRadius:3, width:`${Math.min((feat.impact/25)*100,100)}%`, background:feat.direction==='positive'?'#4ade80':'#f87171' }} />
+                </div>
+              </div>
+            ))}
+            <p style={{ fontSize:11, lineHeight:1.55, color:'#6b8fa0', marginTop:10 }}>{f.tch_prediction.explanation}</p>
           </div>
 
           {/* Rainfall */}
-          <div className="rounded-xl p-5" style={{ background: '#0c1318', border: '1px solid #1e2d38' }}>
-            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#3d5a6a', letterSpacing: '0.12em' }}>Rainfall Status</p>
-            <div className="space-y-2 text-xs">
-              {[
-                ['7-day rainfall', `${f.rainfall_7d_mm} mm`],
-                ['30-day rainfall', `${f.rainfall_30d_mm} mm`],
-                ['30-day expected', `${f.expected_rainfall_30d_mm} mm`],
-              ].map(([k, v]) => (
-                <div key={k} className="flex justify-between">
-                  <span style={{ color: '#5a7a8a' }}>{k}</span>
-                  <span className="mono font-bold" style={{ color: '#e2eaf0' }}>{v}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3">
-              <ProbBar value={rfPct / 100} label={`Rainfall Adequacy`} />
-            </div>
+          <div style={{ background:'#0d1518', border:'1px solid #1c2d38', borderRadius:12, padding:'18px 20px' }}>
+            <div style={{ fontSize:10, fontWeight:800, letterSpacing:'0.14em', textTransform:'uppercase', color:'#384e5c', marginBottom:12 }}>Rainfall Status</div>
+            {[['7-day', `${f.rainfall_7d_mm} mm`],['30-day', `${f.rainfall_30d_mm} mm`],['Expected 30d', `${f.expected_rainfall_30d_mm} mm`]].map(([k,v]) => (
+              <div key={k} style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+                <span style={{ fontSize:11, color:'#6b8fa0' }}>{k}</span>
+                <span style={{ fontSize:11, fontWeight:700, color:'#dce8f0', fontFamily:'monospace' }}>{v}</span>
+              </div>
+            ))}
+            <div style={{ marginTop:10 }}><ProbBar value={rfPct/100} label={`Adequacy (${rfPct}%)`} /></div>
           </div>
 
           {/* Soil */}
-          <div className="rounded-xl p-5" style={{ background: '#0c1318', border: '1px solid #1e2d38' }}>
-            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#3d5a6a', letterSpacing: '0.12em' }}>Soil & Fertilizer</p>
-            <div className="space-y-2 text-xs">
-              {[
-                ['Soil Type', f.soil_type],
-                ['pH', String(f.soil_ph)],
-                ['Organic Carbon', `${f.organic_carbon}%`],
-                ['Last Fertilizer', `${f.last_fertilizer_date} (${dsf}d ago)`],
-                ['N Applied', `${f.fertilizer_n_kg_ha} kg/ha`],
-                ['P Applied', `${f.fertilizer_p_kg_ha} kg/ha`],
-                ['K Applied', `${f.fertilizer_k_kg_ha} kg/ha`],
-              ].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-4">
-                  <span style={{ color: '#5a7a8a' }}>{k}</span>
-                  <span className="mono text-right" style={{ color: '#e2eaf0' }}>{v}</span>
-                </div>
-              ))}
-              <div className="flex justify-between items-center">
-                <span style={{ color: '#5a7a8a' }}>Nitrogen</span>
-                <SeverityBadge level={f.nitrogen_level === 'Low' ? 'High' : f.nitrogen_level === 'Medium' ? 'Moderate' : 'Low'} />
+          <div style={{ background:'#0d1518', border:'1px solid #1c2d38', borderRadius:12, padding:'18px 20px' }}>
+            <div style={{ fontSize:10, fontWeight:800, letterSpacing:'0.14em', textTransform:'uppercase', color:'#384e5c', marginBottom:12 }}>Soil & Fertilizer</div>
+            {[
+              ['Soil Type', f.soil_type],['pH', String(f.soil_ph)],['Organic C', `${f.organic_carbon}%`],
+              ['N / P / K', `${f.fertilizer_n_kg_ha}/${f.fertilizer_p_kg_ha}/${f.fertilizer_k_kg_ha} kg/ha`],
+              ['Last Fertilizer', `${dsf}d ago`],
+            ].map(([k,v]) => (
+              <div key={k} style={{ display:'flex', justifyContent:'space-between', marginBottom:8, gap:10 }}>
+                <span style={{ fontSize:11, color:'#6b8fa0', flexShrink:0 }}>{k}</span>
+                <span style={{ fontSize:11, color:'#dce8f0', fontFamily:'monospace', textAlign:'right' }}>{v}</span>
               </div>
-            </div>
-          </div>
-
-          {/* Phenology */}
-          <div className="rounded-xl p-5" style={{ background: '#0c1318', border: '1px solid #1e2d38' }}>
-            <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#3d5a6a', letterSpacing: '0.12em' }}>Phenology Metrics</p>
-            <div className="space-y-2 text-xs">
-              {[
-                ['SOS', f.phenology.SOS],
-                ['Peak NDRE', f.phenology.peak_NDRE.toFixed(3)],
-                ['AUC', f.phenology.AUC.toFixed(1)],
-                ['Green-up days', `${f.phenology.green_up_days}d`],
-                ['Stress days', `${f.phenology.stress_days}d`],
-                ['Stress persistence', `${(f.phenology.stress_persistence * 100).toFixed(0)}%`],
-              ].map(([k, v]) => (
-                <div key={k} className="flex justify-between">
-                  <span style={{ color: '#5a7a8a' }}>{k}</span>
-                  <span className="mono font-bold" style={{ color: '#e2eaf0' }}>{v}</span>
-                </div>
-              ))}
+            ))}
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontSize:11, color:'#6b8fa0' }}>Nitrogen</span>
+              <SeverityBadge level={f.nitrogen_level === 'Low' ? 'High' : f.nitrogen_level === 'Medium' ? 'Moderate' : 'Low'} />
             </div>
           </div>
         </div>

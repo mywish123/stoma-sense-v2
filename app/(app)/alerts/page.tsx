@@ -1,76 +1,127 @@
 import { getAlerts, getEnrichedFields } from '@/lib/data/dataService';
-import { SeverityBadge } from '@/components/ui';
+import { SeverityBadge, PageHeader } from '@/components/ui';
 import Link from 'next/link';
+
+const ALERT_ICONS: Record<string, string> = {
+  irrigation_deficit: '💧',
+  high_risk: '🚨',
+  rapid_decline: '📉',
+  unresolved_stress: '⚠️',
+  harvest_window: '🌾',
+};
+
+const ALERT_LABELS: Record<string, string> = {
+  irrigation_deficit: 'Irrigation Deficit',
+  high_risk: 'High Risk Field',
+  rapid_decline: 'Rapid NDRE Decline',
+  unresolved_stress: 'Unresolved Stress',
+  harvest_window: 'Harvest Window',
+};
 
 export default function AlertsPage() {
   const alerts = getAlerts();
   const fields = getEnrichedFields();
 
-  const alertTypeLabel: Record<string, string> = {
-    irrigation_deficit: '💧 Irrigation Deficit',
-    high_risk: '🚨 High Risk',
-    rapid_decline: '📉 Rapid Decline',
-    unresolved_stress: '⚠️ Unresolved Stress',
-    harvest_window: '🌾 Harvest Window',
+  const critical = alerts.filter(a => a.severity === 'Critical');
+  const high     = alerts.filter(a => a.severity === 'High');
+  const moderate = alerts.filter(a => a.severity === 'Moderate');
+  const low      = alerts.filter(a => a.severity === 'Low');
+
+  const leftBorder: Record<string, string> = {
+    Critical: '#f87171',
+    High:     '#fb923c',
+    Moderate: '#facc15',
+    Low:      '#4ade80',
   };
 
   return (
-    <div className="animate-fade-up">
-      <div className="mb-8">
-        <p className="text-xs font-bold tracking-widest mb-1 uppercase" style={{ color: '#4ade80', letterSpacing: '0.15em' }}>OPERATIONAL INTELLIGENCE</p>
-        <h1 className="text-3xl font-black mb-1" style={{ color: '#e2eaf0', letterSpacing: '-0.02em' }}>Alert Center</h1>
-        <p className="text-sm" style={{ color: '#5a7a8a' }}>
-          {alerts.length} active alerts · {alerts.filter(a => a.severity === 'Critical').length} critical · {alerts.filter(a => a.severity === 'High').length} high priority
-        </p>
-        <div className="h-px mt-5" style={{ background: 'linear-gradient(to right, #1e2d38, transparent)' }} />
-      </div>
+    <div style={{ maxWidth:960 }}>
+      <PageHeader
+        eyebrow="OPERATIONAL INTELLIGENCE"
+        title="Alert Center"
+        sub={`${alerts.length} active alerts · ${critical.length} critical · ${high.length} high priority · ${moderate.length} moderate`}
+      />
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        {['Critical', 'High', 'Moderate', 'Low'].map(sev => {
-          const count = alerts.filter(a => a.severity === sev).length;
-          const color = sev === 'Critical' ? '#f87171' : sev === 'High' ? '#fb923c' : sev === 'Moderate' ? '#facc15' : '#4ade80';
-          return (
-            <div key={sev} className="rounded-xl p-4" style={{ background: '#0c1318', border: `1px solid ${color}22` }}>
-              <p className="text-xs font-bold tracking-widest uppercase mb-2" style={{ color: '#5a7a8a' }}>{sev}</p>
-              <p className="text-2xl font-black mono" style={{ color }}>{count}</p>
+      {/* Severity summary cards */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:14, marginBottom:28 }}>
+        {[
+          { label:'Critical', count:critical.length, color:'#f87171', bg:'rgba(248,113,113,0.06)', border:'rgba(248,113,113,0.2)' },
+          { label:'High',     count:high.length,     color:'#fb923c', bg:'rgba(251,146,60,0.06)',  border:'rgba(251,146,60,0.18)' },
+          { label:'Moderate', count:moderate.length,  color:'#facc15', bg:'rgba(250,204,21,0.06)',  border:'rgba(250,204,21,0.18)' },
+          { label:'Low',      count:low.length,       color:'#4ade80', bg:'rgba(74,222,128,0.04)',  border:'rgba(74,222,128,0.14)' },
+        ].map(s => (
+          <div key={s.label} style={{
+            background:s.bg, border:`1px solid ${s.border}`,
+            borderRadius:12, padding:'18px 20px',
+          }}>
+            <div style={{ fontSize:10, fontWeight:800, letterSpacing:'0.14em', textTransform:'uppercase', color:'#384e5c', marginBottom:8 }}>
+              {s.label}
             </div>
-          );
-        })}
+            <div style={{ fontSize:32, fontWeight:900, color:s.color, fontVariantNumeric:'tabular-nums', letterSpacing:'-0.02em' }}>
+              {s.count}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Alert list */}
-      <div className="space-y-3">
+      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
         {alerts.map(alert => {
           const field = fields.find(f => f.field_id === alert.field_id);
+          const border = leftBorder[alert.severity] ?? '#1c2d38';
           return (
-            <div key={alert.id} className="rounded-xl p-5 transition-all hover:scale-[1.003]"
-              style={{
-                background: '#0c1318',
-                border: `1px solid ${alert.severity === 'Critical' ? 'rgba(248,113,113,0.25)' : alert.severity === 'High' ? 'rgba(251,146,60,0.2)' : '#1e2d38'}`,
-              }}>
-              <div className="flex items-start justify-between gap-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0"
-                    style={{ background: alert.severity === 'Critical' ? '#f87171' : alert.severity === 'High' ? '#fb923c' : '#facc15' }} />
-                  <div>
-                    <div className="flex items-center gap-3 mb-1.5">
-                      <span className="text-xs font-bold tracking-wider" style={{ color: '#5a7a8a' }}>
-                        {alertTypeLabel[alert.type] ?? alert.type}
+            <div key={alert.id} style={{
+              background:'#0d1518',
+              border:'1px solid #1c2d38',
+              borderLeft:`3px solid ${border}`,
+              borderRadius:12,
+              padding:'18px 22px',
+              transition:'transform 0.15s, box-shadow 0.15s',
+            }} className="card-hover">
+              <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:20 }}>
+                {/* Left: icon + content */}
+                <div style={{ display:'flex', alignItems:'flex-start', gap:14, flex:1, minWidth:0 }}>
+                  <div style={{
+                    width:36, height:36, borderRadius:8, flexShrink:0,
+                    background:'rgba(255,255,255,0.04)', border:'1px solid #1c2d38',
+                    display:'flex', alignItems:'center', justifyContent:'center', fontSize:17,
+                  }}>
+                    {ALERT_ICONS[alert.type] ?? '⚠️'}
+                  </div>
+                  <div style={{ minWidth:0, flex:1 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6, flexWrap:'wrap' }}>
+                      <span style={{ fontSize:11, fontWeight:700, color:'#6b8fa0', letterSpacing:'0.04em' }}>
+                        {ALERT_LABELS[alert.type] ?? alert.type}
                       </span>
                       <SeverityBadge level={alert.severity} />
                     </div>
-                    <p className="text-sm font-medium leading-snug mb-2" style={{ color: '#e2eaf0' }}>{alert.message}</p>
+                    <div style={{ fontSize:14, fontWeight:600, color:'#dce8f0', lineHeight:1.5, marginBottom:6 }}>
+                      {alert.message}
+                    </div>
                     {field && (
-                      <p className="text-xs" style={{ color: '#3d5a6a' }}>
-                        {field.village}, {field.district} · {field.area_ha} ha · {field.growth_stage} · Crop age: {field.crop_age_days}d
-                      </p>
+                      <div style={{ fontSize:11, color:'#384e5c', display:'flex', gap:10, flexWrap:'wrap' }}>
+                        <span>{field.village}, {field.district}</span>
+                        <span>·</span>
+                        <span>{field.area_ha} ha</span>
+                        <span>·</span>
+                        <span>{field.growth_stage}</span>
+                        <span>·</span>
+                        <span>Crop age: {field.crop_age_days}d</span>
+                      </div>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <Link href={`/fields/${alert.field_id}`}
-                    className="text-xs font-bold hover:opacity-70 transition-opacity" style={{ color: '#4ade80' }}>
+
+                {/* Right: action */}
+                <div style={{ flexShrink:0 }}>
+                  <Link href={`/fields/${alert.field_id}`} style={{
+                    display:'inline-flex', alignItems:'center', gap:4,
+                    padding:'7px 14px', borderRadius:7, textDecoration:'none',
+                    fontSize:12, fontWeight:700, color:'#4ade80',
+                    background:'rgba(74,222,128,0.08)',
+                    border:'1px solid rgba(74,222,128,0.2)',
+                    whiteSpace:'nowrap',
+                  }}>
                     View Field →
                   </Link>
                 </div>

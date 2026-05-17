@@ -1,6 +1,6 @@
 import { getEnrichedFields } from '@/lib/data/dataService';
 import { Advisory } from '@/types';
-import { AdvisoryCard, SeverityBadge, PriorityBadge } from '@/components/ui';
+import { AdvisoryCard, SeverityBadge, PriorityBadge, PageHeader } from '@/components/ui';
 
 export default function AdvisoriesPage() {
   const fields = getEnrichedFields();
@@ -37,7 +37,7 @@ export default function AdvisoriesPage() {
             <div className="flex gap-1 mt-2 flex-wrap">
               {['Critical', 'High', 'Moderate', 'Low'].map(sev => {
                 const count = advs.filter(a => a.severity === sev).length;
-                return count > 0 ? <SeverityBadge key={sev} level={sev} className="text-xs" /> : null;
+                return count > 0 ? <SeverityBadge key={sev} level={sev} /> : null;
               })}
             </div>
           </div>

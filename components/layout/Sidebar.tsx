@@ -4,71 +4,71 @@ import { usePathname } from 'next/navigation';
 
 const NAV = [
   { group: 'OVERVIEW', items: [
-    { href: '/dashboard', icon: '⬛', label: 'Executive Dashboard' },
-    { href: '/alerts', icon: '🔔', label: 'Alert Center' },
+    { href: '/dashboard', label: 'Executive Dashboard' },
+    { href: '/alerts',    label: 'Alert Center' },
   ]},
   { group: 'INTELLIGENCE', items: [
-    { href: '/fields', icon: '🗺️', label: 'Field Intelligence' },
-    { href: '/map', icon: '🛰️', label: 'Geospatial View' },
-    { href: '/advisories', icon: '📋', label: 'Advisory Engine' },
+    { href: '/fields',     label: 'Field Intelligence' },
+    { href: '/map',        label: 'Geospatial View' },
+    { href: '/advisories', label: 'Advisory Engine' },
   ]},
   { group: 'ANALYTICS', items: [
-    { href: '/phenology', icon: '📈', label: 'Phenology Engine' },
-    { href: '/analytics', icon: '📊', label: 'Index Analytics' },
-    { href: '/intelligence', icon: '🤖', label: 'Yield Intelligence' },
+    { href: '/phenology',    label: 'Phenology Engine' },
+    { href: '/analytics',    label: 'Index Analytics' },
+    { href: '/intelligence', label: 'Yield Intelligence' },
   ]},
   { group: 'OPERATIONS', items: [
-    { href: '/export', icon: '📤', label: 'Export & Reports' },
-    { href: '/settings', icon: '⚙️', label: 'Configuration' },
+    { href: '/export',   label: 'Export & Reports' },
+    { href: '/settings', label: 'Configuration' },
   ]},
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-
   return (
-    <aside className="fixed left-0 top-0 h-full z-40 flex flex-col"
-      style={{ width: '260px', background: '#050a0e', borderRight: '1px solid #1e2d38' }}>
-
+    <aside style={{
+      position:'fixed', left:0, top:0, bottom:0, width:'260px',
+      background:'#060c10', borderRight:'1px solid #1c2d38',
+      display:'flex', flexDirection:'column', zIndex:50, overflow:'hidden',
+    }}>
       {/* Logo */}
-      <div className="px-6 py-6" style={{ borderBottom: '1px solid #1e2d38' }}>
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
-            style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.25)' }}>
-            🌿
-          </div>
+      <div style={{ padding:'20px', borderBottom:'1px solid #1c2d38', flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <div style={{
+            width:34, height:34, borderRadius:9, flexShrink:0,
+            background:'rgba(74,222,128,0.10)', border:'1px solid rgba(74,222,128,0.22)',
+            display:'flex', alignItems:'center', justifyContent:'center', fontSize:17,
+          }}>🌿</div>
           <div>
-            <div className="font-black text-sm tracking-wider" style={{ color: '#4ade80', letterSpacing: '0.1em' }}>
-              STOMA SENSE
-            </div>
-            <div className="text-xs" style={{ color: '#2d4455', letterSpacing: '0.06em' }}>
-              ENTERPRISE V2
-            </div>
+            <div style={{ fontWeight:900, fontSize:12, letterSpacing:'0.16em', color:'#4ade80', lineHeight:1.3 }}>STOMA SENSE</div>
+            <div style={{ fontSize:10, letterSpacing:'0.1em', color:'#2d4455', fontWeight:700, lineHeight:1.3 }}>ENTERPRISE V2</div>
           </div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3">
-        {NAV.map(group => (
-          <div key={group.group} className="mb-6">
-            <div className="px-3 mb-2 text-xs font-bold tracking-widest" style={{ color: '#2d4455', letterSpacing: '0.14em' }}>
-              {group.group}
+      <nav style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'10px 10px' }}>
+        {NAV.map(g => (
+          <div key={g.group} style={{ marginBottom:22 }}>
+            <div style={{ padding:'0 10px', marginBottom:5, fontSize:9, fontWeight:800, letterSpacing:'0.18em', color:'#243848', textTransform:'uppercase' }}>
+              {g.group}
             </div>
-            {group.items.map(item => {
-              const active = pathname === item.href || pathname.startsWith(item.href + '/');
+            {g.items.map(item => {
+              const active = pathname === item.href || pathname.startsWith(item.href+'/');
               return (
-                <Link key={item.href} href={item.href}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-medium transition-all"
-                  style={{
-                    background: active ? 'rgba(74,222,128,0.08)' : 'transparent',
-                    color: active ? '#4ade80' : '#5a7a8a',
-                    border: active ? '1px solid rgba(74,222,128,0.18)' : '1px solid transparent',
-                  }}
-                >
-                  <span className="text-base w-5 text-center">{item.icon}</span>
-                  <span>{item.label}</span>
-                  {active && <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: '#4ade80' }} />}
+                <Link key={item.href} href={item.href} style={{
+                  display:'block',
+                  padding:'8px 12px',
+                  borderRadius:8, marginBottom:2,
+                  textDecoration:'none', fontSize:13,
+                  fontWeight: active ? 700 : 500,
+                  color: active ? '#4ade80' : '#6b8fa0',
+                  background: active ? 'rgba(74,222,128,0.08)' : 'transparent',
+                  border:`1px solid ${active ? 'rgba(74,222,128,0.16)' : 'transparent'}`,
+                  transition:'all 0.15s',
+                  overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                }}>
+                  {item.label}
                 </Link>
               );
             })}
@@ -76,14 +76,15 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Status footer */}
-      <div className="px-6 py-5" style={{ borderTop: '1px solid #1e2d38' }}>
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#4ade80' }} />
-          <span className="text-xs font-medium" style={{ color: '#4ade80' }}>Satellite Active</span>
+      {/* Status */}
+      <div style={{ padding:'14px 20px', borderTop:'1px solid #1c2d38', flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:4 }}>
+          <span className="dot-live" />
+          <span style={{ fontSize:12, fontWeight:700, color:'#4ade80' }}>Satellite Active</span>
         </div>
-        <p className="text-xs" style={{ color: '#2d4455' }}>Last sync: 2025-05-14</p>
-        <p className="text-xs" style={{ color: '#2d4455' }}>15 fields · 67.4 ha</p>
+        <div style={{ fontSize:11, color:'#2d4455', lineHeight:1.65 }}>
+          Last sync: 2025-05-14<br/>15 fields · 67.4 ha
+        </div>
       </div>
     </aside>
   );

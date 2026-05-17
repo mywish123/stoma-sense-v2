@@ -2,152 +2,118 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { EnrichedField } from '@/types';
-import { SeverityBadge, PriorityBadge, ProbBar, HealthScore } from '@/components/ui';
+import { SeverityBadge, PriorityBadge, HealthScore } from '@/components/ui';
 
-const STAGES = ['All', 'Initiation', 'Tillering', 'Grand Growth', 'Maturity'];
+const STAGES    = ['All', 'Initiation', 'Tillering', 'Grand Growth', 'Maturity'];
 const PRIORITIES = ['All', 'Urgent', 'High', 'Medium', 'Low'];
-const DISTRICTS = (fields: EnrichedField[]) => ['All', ...Array.from(new Set(fields.map(f => f.district)))];
+
+const inputStyle: React.CSSProperties = {
+  background:'#0d1518', border:'1px solid #1c2d38', borderRadius:8,
+  color:'#dce8f0', fontSize:13, padding:'8px 12px', outline:'none',
+};
+
+const probLevel = (p: number) => p > 0.65 ? 'Critical' : p > 0.5 ? 'High' : p > 0.3 ? 'Moderate' : 'Low';
 
 export default function FieldsTable({ fields }: { fields: EnrichedField[] }) {
-  const [search, setSearch] = useState('');
-  const [stage, setStage] = useState('All');
+  const [search,   setSearch]   = useState('');
+  const [stage,    setStage]    = useState('All');
   const [priority, setPriority] = useState('All');
   const [district, setDistrict] = useState('All');
-  const [sortKey, setSortKey] = useState<keyof EnrichedField>('advisory_priority_score');
-  const [sortDir, setSortDir] = useState<'asc'|'desc'>('desc');
+  const districts = useMemo(() => ['All', ...Array.from(new Set(fields.map(f => f.district)))], [fields]);
 
-  const filtered = useMemo(() => fields
-    .filter(f =>
-      (!search || [f.field_id, f.farm_name, f.village, f.cultivar].some(v => v.toLowerCase().includes(search.toLowerCase()))) &&
-      (stage === 'All' || f.growth_stage === stage) &&
-      (priority === 'All' || f.advisory_priority === priority) &&
-      (district === 'All' || f.district === district)
-    )
-    .sort((a, b) => {
-      const av = a[sortKey] as number, bv = b[sortKey] as number;
-      return sortDir === 'desc' ? bv - av : av - bv;
-    }),
-    [fields, search, stage, priority, district, sortKey, sortDir]
-  );
+  const filtered = useMemo(() => fields.filter(f =>
+    (!search || [f.field_id, f.farm_name, f.village].some(v => v.toLowerCase().includes(search.toLowerCase()))) &&
+    (stage    === 'All' || f.growth_stage === stage) &&
+    (priority === 'All' || f.advisory_priority === priority) &&
+    (district === 'All' || f.district === district)
+  ), [fields, search, stage, priority, district]);
 
-  const handleSort = (k: keyof EnrichedField) => {
-    if (k === sortKey) setSortDir(d => d === 'desc' ? 'asc' : 'desc');
-    else { setSortKey(k); setSortDir('desc'); }
-  };
-
-  const inputStyle = {
-    background: '#0c1318', border: '1px solid #1e2d38', borderRadius: 8,
-    color: '#e2eaf0', fontSize: 13, padding: '8px 12px', outline: 'none',
-  };
-
-  const Th = ({ label, k }: { label: string; k?: keyof EnrichedField }) => (
-    <th onClick={() => k && handleSort(k)} style={{
-      padding: '12px 16px', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
-      textTransform: 'uppercase', color: '#3d5a6a', borderBottom: '1px solid #1e2d38',
-      cursor: k ? 'pointer' : 'default', textAlign: 'left',
-      whiteSpace: 'nowrap' as const,
-    }}>
-      {label}{k === sortKey ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}
-    </th>
-  );
-
-  const probLevel = (p: number) =>
-    p > 0.65 ? 'Critical' : p > 0.5 ? 'High' : p > 0.3 ? 'Moderate' : 'Low';
+  const ndreColor = (anom: number) => anom < -0.2 ? '#f87171' : anom < -0.05 ? '#facc15' : '#4ade80';
 
   return (
     <div>
       {/* Filter bar */}
-      <div className="flex flex-wrap gap-3 mb-5 items-center">
+      <div style={{ display:'flex', flexWrap:'wrap', gap:10, marginBottom:16, alignItems:'center' }}>
         <input
           value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search fields, farms, villages..." style={{ ...inputStyle, width: 260 }}
+          placeholder="Search fields, farms, villages…"
+          style={{ ...inputStyle, width:260 }}
         />
         {[
-          { label: 'Stage', val: stage, set: setStage, opts: STAGES },
-          { label: 'Priority', val: priority, set: setPriority, opts: PRIORITIES },
-          { label: 'District', val: district, set: setDistrict, opts: DISTRICTS(fields) },
-        ].map(s => (
-          <select key={s.label} value={s.val} onChange={e => s.set(e.target.value)}
-            style={{ ...inputStyle, paddingRight: 20 }}>
+          { val:stage,    set:setStage,    opts:STAGES },
+          { val:priority, set:setPriority, opts:PRIORITIES },
+          { val:district, set:setDistrict, opts:districts },
+        ].map((s, i) => (
+          <select key={i} value={s.val} onChange={e => s.set(e.target.value)} style={{ ...inputStyle, cursor:'pointer' }}>
             {s.opts.map(o => <option key={o}>{o}</option>)}
           </select>
         ))}
-        <div className="ml-auto text-xs" style={{ color: '#3d5a6a' }}>
-          {filtered.length}/{fields.length} fields
+        <div style={{ marginLeft:'auto', fontSize:11, color:'#384e5c' }}>
+          {filtered.length} / {fields.length} fields
         </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-xl overflow-x-auto" style={{ background: '#0c1318', border: '1px solid #1e2d38' }}>
-        <table className="w-full" style={{ minWidth: 1100 }}>
+      <div style={{ background:'#0d1518', border:'1px solid #1c2d38', borderRadius:12, overflowX:'auto' }}>
+        <table className="data-table" style={{ minWidth:1100 }}>
           <thead>
             <tr>
-              <Th label="Field ID" />
-              <Th label="Farm / Location" />
-              <Th label="Area" k="area_ha" />
-              <Th label="Stage" />
-              <Th label="Health" k="health_score" />
-              <Th label="NDRE"  />
-              <Th label="CIRE"  />
-              <Th label="NDWI"  />
-              <Th label="Water" k="water_stress_probability" />
-              <Th label="Nutrient" k="nutrient_stress_probability" />
-              <Th label="Salinity" k="salinity_risk_probability" />
-              <Th label="TCH Est."  />
-              <Th label="Priority" k="advisory_priority_score" />
-              <Th label="" />
+              {['Field ID','Farm / Village','Area','Stage','Health','NDRE','CIRE','NDWI','Water','Nutrient','Salinity','Pred TCH','Priority',''].map(h => (
+                <th key={h}>{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {filtered.map(f => (
-              <tr key={f.field_id} style={{ borderBottom: '1px solid #111b22' }}
-                className="hover:bg-[#111b22] transition-colors">
-                <td className="px-4 py-3">
-                  <Link href={`/fields/${f.field_id}`}>
-                    <span className="text-xs font-bold mono" style={{ color: '#4ade80' }}>{f.field_id}</span>
+              <tr key={f.field_id}>
+                <td>
+                  <Link href={`/fields/${f.field_id}`} style={{ textDecoration:'none' }}>
+                    <div style={{ fontSize:12, fontWeight:800, color:'#4ade80', fontFamily:'monospace' }}>{f.field_id}</div>
                   </Link>
                 </td>
-                <td className="px-4 py-3">
-                  <p className="text-xs font-medium" style={{ color: '#e2eaf0' }}>{f.farm_name}</p>
-                  <p className="text-xs" style={{ color: '#5a7a8a' }}>{f.village}, {f.district}</p>
+                <td>
+                  <div style={{ fontSize:13, fontWeight:600, color:'#dce8f0' }}>{f.farm_name}</div>
+                  <div style={{ fontSize:11, color:'#6b8fa0', marginTop:1 }}>{f.village}, {f.district}</div>
                 </td>
-                <td className="px-4 py-3 text-xs mono" style={{ color: '#5a7a8a' }}>{f.area_ha} ha</td>
-                <td className="px-4 py-3">
-                  <span className="text-xs px-2 py-0.5 rounded" style={{ background: '#1e2d38', color: '#5a7a8a' }}>
-                    {f.growth_stage === 'Grand Growth' ? 'Grd Gwth' : f.growth_stage}
+                <td style={{ fontSize:12, color:'#6b8fa0', fontFamily:'monospace', whiteSpace:'nowrap' }}>{f.area_ha} ha</td>
+                <td>
+                  <span style={{
+                    fontSize:11, padding:'3px 8px', borderRadius:4,
+                    background:'#172430', color:'#6b8fa0', whiteSpace:'nowrap',
+                  }}>
+                    {f.growth_stage === 'Grand Growth' ? 'Grand Gwth' : f.growth_stage}
                   </span>
                 </td>
-                <td className="px-4 py-3"><HealthScore score={f.health_score} size={36} /></td>
-                <td className="px-4 py-3">
-                  <span className="text-xs mono font-bold"
-                    style={{ color: f.ndre_anomaly < -0.2 ? '#f87171' : f.ndre_anomaly < -0.05 ? '#facc15' : '#4ade80' }}>
+                <td><HealthScore score={f.health_score} size={36} /></td>
+                <td>
+                  <span style={{ fontSize:12, fontWeight:700, fontFamily:'monospace', color:ndreColor(f.ndre_anomaly) }}>
                     {f.indices.NDRE.toFixed(3)}
                   </span>
                 </td>
-                <td className="px-4 py-3">
-                  <span className="text-xs mono font-bold"
-                    style={{ color: f.cire_anomaly < -0.2 ? '#f87171' : f.cire_anomaly < -0.05 ? '#facc15' : '#4ade80' }}>
+                <td>
+                  <span style={{ fontSize:12, fontWeight:700, fontFamily:'monospace', color:ndreColor(f.cire_anomaly) }}>
                     {f.indices.CIRE.toFixed(3)}
                   </span>
                 </td>
-                <td className="px-4 py-3">
-                  <span className="text-xs mono font-bold"
-                    style={{ color: f.indices.NDWI < -0.2 ? '#f87171' : f.indices.NDWI < -0.05 ? '#facc15' : '#4ade80' }}>
+                <td>
+                  <span style={{ fontSize:12, fontWeight:700, fontFamily:'monospace', color:f.indices.NDWI < -0.2 ? '#f87171' : f.indices.NDWI < -0.05 ? '#facc15' : '#4ade80' }}>
                     {f.indices.NDWI.toFixed(3)}
                   </span>
                 </td>
-                <td className="px-4 py-3"><SeverityBadge level={probLevel(f.water_stress_probability)} /></td>
-                <td className="px-4 py-3"><SeverityBadge level={probLevel(f.nutrient_stress_probability)} /></td>
-                <td className="px-4 py-3"><SeverityBadge level={probLevel(f.salinity_risk_probability)} /></td>
-                <td className="px-4 py-3">
-                  <span className="text-xs mono font-bold" style={{ color: '#e2eaf0' }}>
-                    {f.tch_prediction.predicted_tch} TCH
-                  </span>
+                <td><SeverityBadge level={probLevel(f.water_stress_probability)} /></td>
+                <td><SeverityBadge level={probLevel(f.nutrient_stress_probability)} /></td>
+                <td><SeverityBadge level={probLevel(f.salinity_risk_probability)} /></td>
+                <td style={{ fontSize:13, fontWeight:800, fontFamily:'monospace', color:'#dce8f0', whiteSpace:'nowrap' }}>
+                  {f.tch_prediction.predicted_tch} TCH
                 </td>
-                <td className="px-4 py-3"><PriorityBadge priority={f.advisory_priority} /></td>
-                <td className="px-4 py-3">
-                  <Link href={`/fields/${f.field_id}`}
-                    className="text-xs font-bold hover:opacity-70 transition-opacity" style={{ color: '#4ade80' }}>
+                <td><PriorityBadge priority={f.advisory_priority} /></td>
+                <td>
+                  <Link href={`/fields/${f.field_id}`} style={{
+                    fontSize:12, fontWeight:700, color:'#4ade80', textDecoration:'none',
+                    padding:'5px 10px', borderRadius:6,
+                    background:'rgba(74,222,128,0.07)', border:'1px solid rgba(74,222,128,0.15)',
+                    whiteSpace:'nowrap',
+                  }}>
                     Detail →
                   </Link>
                 </td>

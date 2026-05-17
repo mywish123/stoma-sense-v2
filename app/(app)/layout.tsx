@@ -3,11 +3,17 @@ import TopBar from '@/components/layout/TopBar';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen" style={{ background: '#050a0e' }}>
+    <div style={{ display:'flex', minHeight:'100vh', background:'#060c10' }}>
       <Sidebar />
-      <div className="flex-1 flex flex-col" style={{ marginLeft: '260px' }}>
+      <div style={{ marginLeft:'260px', flex:1, display:'flex', flexDirection:'column', minWidth:0 }}>
         <TopBar />
-        <main className="flex-1 overflow-auto p-8" style={{ paddingTop: '84px' }}>
+        <main style={{
+          marginTop:'64px',
+          flex:1,
+          overflowY:'auto',
+          overflowX:'hidden',
+          padding:'32px 36px 56px',
+        }}>
           {children}
         </main>
       </div>
